@@ -1,3 +1,10 @@
+.*
+!.scalafix.conf
+!.gitignore
+!.scalafmt.conf
+!.g8
+bin
+.bloop/
 .cache
 /.classpath
 db
