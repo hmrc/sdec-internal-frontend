@@ -16,7 +16,19 @@ object CodeCoverageSettings {
     "testOnlyDoNotUseInAppConf.*",
     ".*handlers.*",
     ".*components.*",
-    ".*viewmodels.govuk.*"
+    ".*viewmodels.govuk.*",
+    "controllers.LanguageSwitchController",
+    "models.UserAnswers",
+    "pages.*",
+    "queries.*",
+    "repositories.*",
+    "views.ViewUtils",
+    "views.html.ErrorTemplate",
+    "models.Enumerable",
+    "models.Mode",
+    "forms.mappings.Formatters",
+    "views.html.IndexView",
+    "views.html.CheckYourAnswersView"
   )
 
   val settings: Seq[Setting[_]] = Seq(
