@@ -1,7 +1,14 @@
 
 # sdec-internal-frontend
+A microservice for HMRC internal users.
+Secure Digital Exchange & Communication is a service for exchanging files digitally and securely between HMRC and external
+customers as well as agencies.
 
-This is a placeholder README.md for a new repository
+# Purpose
+This service provides the SDEC web interface for internal users only.
+
+# How to run locally
+TODO
 
 ### License
 
