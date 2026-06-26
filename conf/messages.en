@@ -51,7 +51,8 @@ unauthorised.heading = You can’t access this service with this account
 sdec.button.thread.create = Create Thread
 sdec.dashboard.title = SDEC Internal Dashboard
 sdec.dashboard.heading = SDEC Internal Dashboard
+sdec.notification = Notifications
 sdec.workspace = Workspace
 sdec.workspace.share.message = Share Files Securely
 
-sdec.notification = Notifications
+
