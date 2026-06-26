@@ -18,7 +18,7 @@
     layout: templates.Layout
 )
 
-@(userName: String, activeTab: String)(implicit request: Request[_], messages: Messages)
+@(userName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("sdec.dashboard.title")),
@@ -43,18 +43,18 @@
                             Welcome back: User
                         </li>
 
-                        <li class="govuk-service-navigation__item @if(activeTab == "workspace") {govuk-service-navigation__item--active}">
-                        <a class="govuk-service-navigation__link" href="#" @if(activeTab == "workspace") {aria-current="true"}>
-                        <strong class="govuk-service-navigation__active-fallback">
-                            @messages("sdec.workspace")
-                        </strong>
-                        </a>
+                        <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
+                            <a class="govuk-service-navigation__link" href="#" aria-current="true">
+                                <strong class="govuk-service-navigation__active-fallback">
+                                    @messages("sdec.workspace")
+                                </strong>
+                            </a>
                         </li>
 
-                        <li class="govuk-service-navigation__item @if(activeTab == "notifications") {govuk-service-navigation__item--active}">
-                        <a class="govuk-service-navigation__link" href="#" @if(activeTab == "notifications") {aria-current="true"}>
-                        @messages("sdec.notification")
-                        </a>
+                        <li class="govuk-service-navigation__item">
+                            <a class="govuk-service-navigation__link" href="#">
+                                @messages("sdec.notification")
+                            </a>
                         </li>
                     </ul>
                 </nav>
