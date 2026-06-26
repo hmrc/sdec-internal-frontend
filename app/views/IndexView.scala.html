@@ -18,40 +18,47 @@
     layout: templates.Layout
 )
 
-@(userName: String)(implicit request: Request[_], messages: Messages)
+@(userName: String, activeTab: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("sdec.dashboard.title")),
     showBackLink = false
 ) {
 
-    <h1 class="govuk-heading-xl">@messages("sdec.dashboard.heading")</h1>
-    <p class="govuk-body">Welcome back @userName</p>
+    <div class="govuk-width-container govuk-width-container__workspace">
 
-    <div class="govuk-tabs" data-module="govuk-tabs">
-        <h2 class="govuk-tabs__title">Contents</h2>
+        <div class="govuk-service-navigation" data-module="govuk-service-navigation">
+            <div class="govuk-service-navigation__container">
+                <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+                    <button type="button"
+                            class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
+                            aria-controls="navigation"
+                            hidden
+                            aria-hidden="true">
+                        Menu
+                    </button>
 
-        <ul class="govuk-tabs__list">
-            <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                <a class="govuk-tabs__tab" href="#workspace">
-                    @messages("sdec.workspace")
-                </a>
-            </li>
-            <li class="govuk-tabs__list-item">
-                <a class="govuk-tabs__tab" href="#notifications">
-                    @messages("sdec.notification")
-                </a>
-            </li>
-        </ul>
+                    <ul class="govuk-service-navigation__list" id="navigation">
+                        <li class="govuk-service-navigation__item">
+                            Welcome back: User
+                        </li>
 
-        <div class="govuk-tabs__panel" id="workspace">
-            <h2 class="govuk-heading-l">@messages("sdec.workspace")</h2>
-            <p class="govuk-body">Workspace content goes here.</p>
-        </div>
+                        <li class="govuk-service-navigation__item @if(activeTab == "workspace") {govuk-service-navigation__item--active}">
+                        <a class="govuk-service-navigation__link" href="#" @if(activeTab == "workspace") {aria-current="true"}>
+                        <strong class="govuk-service-navigation__active-fallback">
+                            @messages("sdec.workspace")
+                        </strong>
+                        </a>
+                        </li>
 
-        <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="notifications">
-            <h2 class="govuk-heading-l">@messages("sdec.notification")</h2>
-            <p class="govuk-body">Notifications content goes here.</p>
+                        <li class="govuk-service-navigation__item @if(activeTab == "notifications") {govuk-service-navigation__item--active}">
+                        <a class="govuk-service-navigation__link" href="#" @if(activeTab == "notifications") {aria-current="true"}>
+                        @messages("sdec.notification")
+                        </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 }

@@ -32,6 +32,6 @@ class IndexController @Inject() (
     with I18nSupport {
 
   def onPageLoad(): Action[AnyContent] = identify { implicit request =>
-    Ok(view(request.userId))
+    Ok(view(request.userId, "workspace"))
   }
 }
