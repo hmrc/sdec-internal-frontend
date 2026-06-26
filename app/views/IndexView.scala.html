@@ -18,14 +18,48 @@
     layout: templates.Layout
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(userName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
-    pageTitle    = titleNoForm(messages("index.title")),
+    pageTitle = titleNoForm(messages("sdec.dashboard.title")),
     showBackLink = false
 ) {
 
-    <h1 class="govuk-heading-xl">@messages("index.heading")</h1>
+    <h1 class="govuk-heading-xl">@messages("sdec.dashboard.heading")</h1>
+    <p class="govuk-body">Welcome back @userName</p>
 
-    <p class="govuk-body">@messages("index.guidance")</p>
+    <div class="govuk-tabs" data-module="govuk-tabs">
+        <h2 class="govuk-tabs__title">Contents</h2>
+
+        <ul class="govuk-tabs__list">
+            <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                <a class="govuk-tabs__tab" href="#workspace">
+                    @messages("sdec.workspace")
+                </a>
+            </li>
+            <li class="govuk-tabs__list-item">
+                <a class="govuk-tabs__tab" href="#notifications">
+                    @messages("sdec.notification")
+                </a>
+            </li>
+        </ul>
+
+        <div class="govuk-tabs__panel" id="workspace">
+            <h2 class="govuk-heading-l">@messages("sdec.workspace")</h2>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    <span class="govuk-caption-l">@messages("sdec.workspace.share.message")</span>
+                    <h1 class="govuk-heading-l">Child Benefit Service</h1>
+                    <button type="submit" class="govuk-button" data-module="govuk-button">
+                        @(messages("sdec.button.continue"))
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="notifications">
+            <h2 class="govuk-heading-l">@messages("sdec.notification")</h2>
+            <p class="govuk-body">Notifications content goes here.</p>
+        </div>
+    </div>
 }

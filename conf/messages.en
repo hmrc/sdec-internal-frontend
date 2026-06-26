@@ -47,3 +47,11 @@ signedOut.guidance = We did not save your answers.
 
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
+
+sdec.button.continue = Continue
+sdec.dashboard.title = SDEC Internal Dashboard
+sdec.dashboard.heading = SDEC Internal Dashboard
+sdec.workspace = Workspace
+sdec.workspace.share.message = Share Files Securely
+
+sdec.notification = Notifications
