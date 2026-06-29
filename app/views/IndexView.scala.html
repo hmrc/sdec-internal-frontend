@@ -25,40 +25,41 @@
     showBackLink = false
 ) {
 
-    <div class="govuk-width-container govuk-width-container__workspace">
+    <h1 class="govuk-heading-xl">@messages("sdec.dashboard.heading")</h1>
+    <p class="govuk-body">Welcome back @userName</p>
 
-        <div class="govuk-service-navigation" data-module="govuk-service-navigation">
-            <div class="govuk-service-navigation__container">
-                <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
-                    <button type="button"
-                            class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
-                            aria-controls="navigation"
-                            hidden
-                            aria-hidden="true">
-                        Menu
+    <div class="govuk-tabs" data-module="govuk-tabs">
+        <h2 class="govuk-tabs__title">Contents</h2>
+
+        <ul class="govuk-tabs__list">
+            <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                <a class="govuk-tabs__tab" href="#workspace">
+                    @messages("sdec.workspace")
+                </a>
+            </li>
+            <li class="govuk-tabs__list-item">
+                <a class="govuk-tabs__tab" href="#notifications">
+                    @messages("sdec.notification")
+                </a>
+            </li>
+        </ul>
+
+        <div class="govuk-tabs__panel" id="workspace">
+            <h2 class="govuk-heading-l">@messages("sdec.workspace")</h2>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    <span class="govuk-caption-l">@messages("sdec.workspace.share.message")</span>
+                    <h1 class="govuk-heading-l">Child Benefit Service</h1>
+                    <button type="submit" class="govuk-button" data-module="govuk-button">
+                        @(messages("sdec.button.thread.create"))
                     </button>
-
-                    <ul class="govuk-service-navigation__list" id="navigation">
-                        <li class="govuk-service-navigation__item">
-                            Welcome back: User
-                        </li>
-
-                        <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
-                            <a class="govuk-service-navigation__link" href="#" aria-current="true">
-                                <strong class="govuk-service-navigation__active-fallback">
-                                    @messages("sdec.workspace")
-                                </strong>
-                            </a>
-                        </li>
-
-                        <li class="govuk-service-navigation__item">
-                            <a class="govuk-service-navigation__link" href="#">
-                                @messages("sdec.notification")
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                </div>
             </div>
+        </div>
+
+        <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="notifications">
+            <h2 class="govuk-heading-l">@messages("sdec.notification")</h2>
+            <p class="govuk-body">Notifications content goes here.</p>
         </div>
     </div>
 }
