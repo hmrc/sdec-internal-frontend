@@ -17,6 +17,7 @@
 package controllers
 
 import controllers.actions.IdentifierAction
+import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -29,9 +30,14 @@ class IndexController @Inject() (
     identify: IdentifierAction,
     view: IndexView
 ) extends FrontendBaseController
+    with Logging
     with I18nSupport {
 
   def onPageLoad(): Action[AnyContent] = identify { implicit request =>
+    request.headers.headers.foreach { case (name, value) =>
+      logger.warn(s"Header: $name = $value")
+    }
+    logger.warn(s"Authenticated userId: ${request.userId}")
     Ok(view(request.userId))
   }
 }
