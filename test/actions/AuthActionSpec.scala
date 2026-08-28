@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package actions
 
+import actions.{AuthenticatedIdentifierAction, IdentifierAction}
 import base.SpecBase
 import com.google.inject.Inject
 import config.FrontendAppConfig

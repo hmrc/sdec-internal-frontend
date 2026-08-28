@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package actions
 
+import actions.DataRetrievalActionImpl
 import base.SpecBase
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}

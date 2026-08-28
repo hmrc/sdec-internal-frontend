@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package queries
+package services
 
-import models.UserAnswers
-import play.api.libs.json.JsPath
+import models.StrideAuthUser
+import play.api.mvc.{AnyContent, Request}
 
-import scala.annotation.nowarn
-import scala.util.{Success, Try}
+import scala.concurrent.Future
 
-sealed trait Query {
-
-  def path: JsPath
-}
-
-trait Gettable[A] extends Query
-
-trait Settable[A] extends Query {
-
-  def cleanup(@nowarn value: Option[A], userAnswers: UserAnswers): Try[UserAnswers] =
-    Success(userAnswers)
+trait SdecServiceAlgebra[T] {
+  def process(
+      strideUser: StrideAuthUser,
+      request: Request[AnyContent]
+  ): Future[T]
 }

@@ -36,7 +36,7 @@ class IndexControllerSpec extends SpecBase {
 
         application.injector.instanceOf[IndexView]
 
-        status(result) mustEqual OK
+        status(result) mustEqual SEE_OTHER
       }
     }
   }

@@ -20,6 +20,7 @@ import config.CurrencyFormatter
 import play.api.data.validation.{Constraint, Invalid, Valid}
 
 import java.time.LocalDate
+import scala.annotation.nowarn
 
 trait Constraints {
 
@@ -119,7 +120,7 @@ trait Constraints {
     }
 
   protected def minimumCurrency(minimum: BigDecimal, errorKey: String)(implicit
-      ev: Ordering[BigDecimal]
+      @nowarn ev: Ordering[BigDecimal]
   ): Constraint[BigDecimal] =
     Constraint { input =>
       if (input >= minimum) {
@@ -130,7 +131,7 @@ trait Constraints {
     }
 
   protected def maximumCurrency(maximum: BigDecimal, errorKey: String)(implicit
-      ev: Ordering[BigDecimal]
+      @nowarn ev: Ordering[BigDecimal]
   ): Constraint[BigDecimal] =
     Constraint { input =>
       if (input <= maximum) {

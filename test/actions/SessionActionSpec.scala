@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package actions
 
+import actions.{IdentifierAction, SessionIdentifierAction}
 import base.SpecBase
 import play.api.mvc.*
 import play.api.test.FakeRequest

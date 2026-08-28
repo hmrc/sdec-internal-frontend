@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package actions
 
+import actions.IdentifierAction
 import models.requests.IdentifierRequest
 import play.api.mvc.*
 

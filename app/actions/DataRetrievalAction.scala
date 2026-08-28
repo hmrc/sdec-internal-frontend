@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package actions
 
-import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
+import play.api.mvc.ActionTransformer
+import repositories.SessionRepository
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers])
+class DataRetrievalActionImpl @Inject() (
+    val sessionRepository: SessionRepository
+)(implicit val executionContext: ExecutionContext)
     extends DataRetrievalAction {
 
   override protected def transform[A](
       request: IdentifierRequest[A]
-  ): Future[OptionalDataRequest[A]] =
-    Future(OptionalDataRequest(request.request, request.userId, dataToReturn))
+  ): Future[OptionalDataRequest[A]] = {
 
-  override protected implicit val executionContext: ExecutionContext =
-    scala.concurrent.ExecutionContext.Implicits.global
+    sessionRepository.get(request.userId).map {
+      OptionalDataRequest(request.request, request.userId, _)
+    }
+  }
 }
+
+trait DataRetrievalAction
+    extends ActionTransformer[IdentifierRequest, OptionalDataRequest]

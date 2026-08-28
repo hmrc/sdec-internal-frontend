@@ -16,8 +16,9 @@
 
 package config
 
+import actions.*
 import com.google.inject.AbstractModule
-import controllers.actions.*
+import strideauth.{StrideAuth, StrideAuthAlgebra}
 
 import java.time.{Clock, ZoneOffset}
 
@@ -30,6 +31,10 @@ class Module extends AbstractModule {
       .asEagerSingleton()
     bind(classOf[DataRequiredAction])
       .to(classOf[DataRequiredActionImpl])
+      .asEagerSingleton()
+
+    bind(classOf[StrideAuthAlgebra])
+      .to(classOf[StrideAuth])
       .asEagerSingleton()
 
     // For session based storage instead of cred based, change to SessionIdentifierAction
