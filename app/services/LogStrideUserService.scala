@@ -43,7 +43,9 @@ class LogStrideUserService extends SdecServiceAlgebra[Unit] with Logging {
     request.headers.toMap.foreach { (k, v) =>
       logger.info(s"Header Information: Key: [$k] => Value: [${v.mkString(",")}]")
     }
-
+    logger.info("===========================================================")
+    logger.info(s"Name: ${strideUser.name}")
+    logger.info("===========================================================")
     Future.successful(())
   }
 }

@@ -64,13 +64,15 @@ class StrideAuth @Inject() (
           Retrievals.allEnrolments
             .and(Retrievals.email)
             .and(Retrievals.credentials)
-        ) { case allEnrolments ~ email ~ credentials =>
+            .and(Retrievals.name)
+        ) { case allEnrolments ~ email ~ credentials ~ name =>
 
           val strideUser =
             StrideAuthUser(
               credentials,
               email,
-              allEnrolments
+              allEnrolments,
+              name
             )
 
           action(strideUser, request)

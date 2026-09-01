@@ -46,7 +46,7 @@ class IndexController @Inject() (
       logStrideUserService
         .process(strideUser, request)
         .map { _ =>
-          Ok(view(strideUser.email))
+          Ok(view(strideUser.name.name.getOrElse("HMRC Staff")))
         }
     }
 }

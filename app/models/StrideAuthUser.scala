@@ -17,12 +17,13 @@
 package models
 
 import uk.gov.hmrc.auth.core.Enrolments
-import uk.gov.hmrc.auth.core.retrieve.Credentials
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 
 case class StrideAuthUser(
     credentials: Credentials,
     email: String,
-    enrolments: Enrolments
+    enrolments: Enrolments,
+    name: Name
 )
 
 object StrideAuthUser {
@@ -30,7 +31,8 @@ object StrideAuthUser {
   def apply(
       credentialOptions: Option[Credentials],
       email: Option[String],
-      enrolments: Enrolments
+      enrolments: Enrolments,
+      nameOption: Option[Name]
   ): StrideAuthUser =
     StrideAuthUser(
       credentials = credentialOptions.getOrElse(
@@ -39,6 +41,7 @@ object StrideAuthUser {
       email = email.getOrElse(
         throw new IllegalArgumentException("No STRIDE Email provided")
       ),
-      enrolments = enrolments
+      enrolments = enrolments,
+      name = nameOption.getOrElse(Name(None, None))
     )
 }
