@@ -23,12 +23,10 @@ object CodeCoverageSettings {
     "queries.*",
     "repositories.*",
     "views.ViewUtils",
-    "views.html.ErrorTemplate",
-    "models.Enumerable",
-    "models.Mode",
+    "models.*",
     "forms.mappings.Formatters",
-    "views.html.IndexView",
-    "views.html.CheckYourAnswersView"
+    "views.html.*",
+    "views.*"
   )
 
   val settings: Seq[Setting[_]] = Seq(

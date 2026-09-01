@@ -28,12 +28,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvi
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait StrideAuthAlgebra
-    extends AuthRedirects
-    with AuthorisedFunctions
-    with Results
-    with FrontendHeaderCarrierProvider {
-
+trait StrideAuthAlgebra {
   def authorisedFromStride(
       action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
   )(implicit ec: ExecutionContext): Action[AnyContent]
@@ -45,6 +40,10 @@ class StrideAuth @Inject() (
     val config: Configuration,
     actionBuilder: DefaultActionBuilder
 ) extends StrideAuthAlgebra
+    with AuthRedirects
+    with AuthorisedFunctions
+    with Results
+    with FrontendHeaderCarrierProvider
     with Logging {
 
   val isLocal: Boolean =

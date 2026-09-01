@@ -17,26 +17,39 @@
 package controllers
 
 import base.SpecBase
+import models.TestStrideAuthUser
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import views.html.IndexView
+import strideauth.{StrideAuthAlgebra, TestStrideAuth}
 
 class IndexControllerSpec extends SpecBase {
 
   "Index Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must return OK for a GET when the user is authenticated with STRIDE" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      val application =
+        applicationBuilder()
+          .overrides(
+            bind[StrideAuthAlgebra].to[TestStrideAuth],
+            bind[models.StrideAuthUser]
+              .toInstance(TestStrideAuthUser.standardUser)
+          )
+          .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.IndexController.onPageLoad().url)
 
-        val result = route(application, request).value
+        val request =
+          FakeRequest(
+            GET,
+            routes.IndexController.onPageLoad().url
+          )
 
-        application.injector.instanceOf[IndexView]
+        val result =
+          route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
+        status(result) mustEqual OK
       }
     }
   }
