@@ -63,7 +63,9 @@ class StrideAuth @Inject() (
           Retrievals.allEnrolments
             .and(Retrievals.email)
             .and(Retrievals.credentials)
-            .and(Retrievals.name)
+            .and(
+              Retrievals.name
+            ) // See https://confluence.tools.tax.service.gov.uk/spaces/SDEC/pages/1381269850/Extracting+External+Internal+User+Name
         ) { case allEnrolments ~ email ~ credentials ~ name =>
 
           val strideUser =

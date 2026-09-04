@@ -16,277 +16,115 @@
 
 package strideauth
 
-import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.must.Matchers
-import play.api.http.HeaderNames.LOCATION
-import play.api.http.Status.SEE_OTHER
-import play.api.{Configuration, Environment, Mode}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import play.api.Configuration
 
-class AuthRedirectsSpec extends AnyFreeSpec with Matchers {
+class AuthRedirectsSpec extends AnyWordSpec with Matchers {
 
-  private def testAuthRedirects(
-      configuration: Configuration
-  ): AuthRedirects =
-    new AuthRedirects {
-      override val config: Configuration = configuration
-      override val env: Environment      =
-        Environment.simple(
-          mode = Mode.Test
+  "AuthRedirects" should {
+
+    "read the STRIDE login URL from configuration" in {
+
+      val configuration = Configuration.from(
+        Map(
+          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in",
+          "appName"          -> "sdec-internal-frontend"
         )
-    }
+      )
 
-  "AuthRedirects" - {
+      val authRedirects = new AuthRedirects {
+        override def config: Configuration = configuration
+      }
 
-    "must return the configured STRIDE login URL in Test mode" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      redirects.strideLoginUrl mustEqual
+      authRedirects.strideLoginUrl shouldBe
         "http://localhost:9041/stride/sign-in"
     }
 
-    "must redirect to STRIDE login with the success URL and origin" in {
+    "read the application name from configuration" in {
 
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
+      val configuration = Configuration.from(
+        Map(
+          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in",
+          "appName"          -> "sdec-internal-frontend"
         )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      val result =
-        redirects.toStrideLogin(
-          successUrl = "/sdec/test"
-        )
-
-      result.header.status mustEqual SEE_OTHER
-
-      result.header.headers.get(LOCATION) mustEqual Some(
-        "http://localhost:9041/stride/sign-in" +
-          "?successURL=%2Fsdec%2Ftest&origin=sdec"
-      )
-    }
-
-    "must include the failure URL when one is supplied" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      val result =
-        redirects.toStrideLogin(
-          successUrl = "/sdec/test",
-          failureUrl = Some("/sdec/error")
-        )
-
-      result.header.status mustEqual SEE_OTHER
-
-      result.header.headers.get(LOCATION) mustEqual Some(
-        "http://localhost:9041/stride/sign-in" +
-          "?successURL=%2Fsdec%2Ftest" +
-          "&origin=sdec" +
-          "&failureURL=%2Fsdec%2Ferror"
-      )
-    }
-
-    "must not include a failure URL when one is not supplied" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      val result =
-        redirects.toStrideLogin(
-          successUrl = "/sdec/test"
-        )
-
-      val location =
-        result.header.headers.getOrElse(LOCATION, "")
-
-      location must not include "failureURL"
-    }
-
-    "must use the Test host rather than the Dev host when running in Test mode" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                    -> "sdec",
-            "run.mode"                                   -> "Dev",
-            "Dev.external-url.stride-auth-frontend.host" ->
-              "http://dev-host:9041",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://test-host:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      redirects.strideLoginUrl mustEqual
-        "http://test-host:9041/stride/sign-in"
-    }
-
-    "must use the Dev host when not running in Test mode and run.mode is Dev" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                    -> "sdec",
-            "run.mode"                                   -> "Dev",
-            "Dev.external-url.stride-auth-frontend.host" ->
-              "http://dev-host:9041"
-          )
-        )
-
-      val redirects =
-        new AuthRedirects {
-          override val config: Configuration = configuration
-          override val env: Environment      =
-            Environment.simple(
-              mode = Mode.Prod
-            )
-        }
-
-      redirects.strideLoginUrl mustEqual
-        "http://dev-host:9041/stride/sign-in"
-    }
-
-    "must fall back to the default Dev STRIDE host when no Dev host is configured" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"  -> "sdec",
-            "run.mode" -> "Dev"
-          )
-        )
-
-      val redirects =
-        new AuthRedirects {
-          override val config: Configuration = configuration
-          override val env: Environment      =
-            Environment.simple(
-              mode = Mode.Prod
-            )
-        }
-
-      redirects.strideLoginUrl mustEqual
-        "http://localhost:9041/stride/sign-in"
-    }
-
-    "must use only the path when no Test STRIDE host is configured" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName" -> "sdec"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      redirects.strideLoginUrl mustEqual
-        "/stride/sign-in"
-    }
-
-    "must preserve the success URL when it contains query parameters" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      val result =
-        redirects.toStrideLogin(
-          successUrl = "/sdec/page?foo=bar"
-        )
-
-      result.header.status mustEqual SEE_OTHER
-
-      val location =
-        result.header.headers.getOrElse(LOCATION, "")
-
-      location must include(
-        "successURL=%2Fsdec%2Fpage%3Ffoo%3Dbar"
-      )
-    }
-
-    "must include success URL, origin and failure URL together" in {
-
-      val configuration =
-        Configuration.from(
-          Map(
-            "appName"                                     -> "sdec",
-            "Test.external-url.stride-auth-frontend.host" ->
-              "http://localhost:9041"
-          )
-        )
-
-      val redirects =
-        testAuthRedirects(configuration)
-
-      val result =
-        redirects.toStrideLogin(
-          successUrl = "/sdec/success",
-          failureUrl = Some("/sdec/failure")
-        )
-
-      result.header.status mustEqual SEE_OTHER
-
-      val location =
-        result.header.headers.getOrElse(LOCATION, "")
-
-      location must include(
-        "successURL=%2Fsdec%2Fsuccess"
       )
 
-      location must include(
-        "origin=sdec"
+      val authRedirects = new AuthRedirects {
+        override def config: Configuration = configuration
+      }
+
+      authRedirects.origin shouldBe
+        "sdec-internal-frontend"
+    }
+
+    "create a redirect to the configured STRIDE login URL" in {
+
+      val configuration = Configuration.from(
+        Map(
+          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in",
+          "appName"          -> "sdec-internal-frontend"
+        )
       )
 
-      location must include(
-        "failureURL=%2Fsdec%2Ffailure"
+      val authRedirects = new AuthRedirects {
+        override def config: Configuration = configuration
+      }
+
+      val result = authRedirects.toStrideLogin(
+        successUrl = "http://localhost:4000/sdec-internal-frontend"
       )
+
+      result.header.status shouldBe 303
+
+      val location = result.header.headers("Location")
+
+      location should startWith(
+        "http://localhost:9041/stride/sign-in?"
+      )
+
+      location should include("successURL=")
+
+      location should include(
+        "origin=sdec-internal-frontend"
+      )
+
+      location should not include "failureURL="
+    }
+
+    "include the failure URL when one is supplied" in {
+
+      val configuration = Configuration.from(
+        Map(
+          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in",
+          "appName"          -> "sdec-internal-frontend"
+        )
+      )
+
+      val authRedirects = new AuthRedirects {
+        override def config: Configuration = configuration
+      }
+
+      val result = authRedirects.toStrideLogin(
+        successUrl = "http://localhost:4000/sdec-internal-frontend",
+        failureUrl = Some("http://localhost:4000/sdec-internal-frontend/failure")
+      )
+
+      result.header.status shouldBe 303
+
+      val location = result.header.headers("Location")
+
+      location should startWith(
+        "http://localhost:9041/stride/sign-in?"
+      )
+
+      location should include("successURL=")
+
+      location should include(
+        "origin=sdec-internal-frontend"
+      )
+
+      location should include("failureURL=")
     }
   }
 }

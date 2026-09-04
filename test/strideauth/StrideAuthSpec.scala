@@ -17,46 +17,40 @@
 package strideauth
 
 import base.SpecBase
-import models.TestStrideAuthUser
+import models.StrideAuthUser
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import play.api.Configuration
-import play.api.mvc.DefaultActionBuilder
-import play.api.mvc.Results.*
+import play.api.http.Status
+import play.api.mvc.*
 import play.api.test.FakeRequest
-import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.*
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.*
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StrideAuthSpec extends SpecBase with MockitoSugar {
+class StrideAuthSpec extends SpecBase {
 
-  /*
-   * The type returned by:
-   *
-   * Retrievals.allEnrolments
-   *   .and(Retrievals.email)
-   *   .and(Retrievals.credentials)
-   *   .and(Retrievals.name)
-   *
-   * Because Retrieval.and produces nested ~ values, the result type is:
-   *
-   * ~[
-   *   ~[
-   *     ~[
-   *       Enrolments,
-   *       Option[String]
-   *     ],
-   *     Option[Credentials]
-   *   ],
-   *   Option[Name]
-   * ]
-   */
+  private val strideUser =
+    StrideAuthUser(
+      credentials = Credentials(
+        providerId = "12345",
+        providerType = "PrivilegedApplication"
+      ),
+      email = "test@example.com",
+      enrolments = Enrolments(
+        Set(
+          Enrolment("sdec_integration_tester")
+        )
+      ),
+      name = Name(
+        Some("Test User"),
+        None
+      )
+    )
+
   type StrideRetrieval =
     ~[
       ~[
@@ -69,19 +63,26 @@ class StrideAuthSpec extends SpecBase with MockitoSugar {
       Option[Name]
     ]
 
-  private val strideUser =
-    TestStrideAuthUser.standardUser
-
-  private def application =
-    applicationBuilder().build()
+  private def successfulRetrieval: StrideRetrieval =
+    new ~(
+      new ~(
+        new ~(
+          strideUser.enrolments,
+          Some(strideUser.email)
+        ),
+        Some(strideUser.credentials)
+      ),
+      Some(strideUser.name)
+    )
 
   private def strideAuth(
       authConnector: AuthConnector,
       application: play.api.Application,
       config: Configuration = Configuration.from(
         Map(
-          "appName"     -> "sdec",
-          "stride.role" -> "SDEC_test_role"
+          "appName"          -> "sdec",
+          "stride.role"      -> "sdec_integration_tester",
+          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in"
         )
       )
   ): StrideAuth = {
@@ -97,290 +98,282 @@ class StrideAuthSpec extends SpecBase with MockitoSugar {
     )
   }
 
-  private def successfulRetrieval: StrideRetrieval =
-    new ~(
-      new ~(
-        new ~(
-          strideUser.enrolments,
-          Some(strideUser.email)
-        ),
-        Some(strideUser.credentials)
-      ),
-      Some(strideUser.name)
-    )
-
   "StrideAuth" - {
 
-    "must execute the supplied action when authentication succeeds" in {
+    "execute the supplied action when authentication and authorisation succeed" in {
 
       val authConnector =
-        mock[AuthConnector]
+        mock(classOf[AuthConnector])
+
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.successful(successfulRetrieval)
+      )
 
       val app =
-        application
+        applicationBuilder().build()
 
-      running(app) {
-
-        val auth =
-          strideAuth(
-            authConnector,
-            app
-          )
-
-        when(
-          authConnector.authorise(
-            any[Predicate],
-            any[Retrieval[StrideRetrieval]]
-          )(using
-            any[HeaderCarrier],
-            any[scala.concurrent.ExecutionContext]
-          )
-        ).thenReturn(
-          Future.successful(successfulRetrieval)
+      val auth =
+        strideAuth(
+          authConnector,
+          app
         )
 
-        val request =
-          FakeRequest(GET, "/test")
+      val action =
+        (
+            user: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.successful(
+            Results.Ok(user.email)
+          )
 
-        val result =
-          auth
-            .authorisedFromStride { (user, _) =>
-              Future.successful(
-                Ok(user.email)
-              )
-            }
-            .apply(request)
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
+        )
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual strideUser.email
-      }
+      val result =
+        auth
+          .authorisedFromStride(action)
+          .apply(request)
+          .futureValue
+
+      result.header.status shouldBe Status.OK
     }
 
-    "must redirect to STRIDE login when there is no active session" in {
+    "redirect to STRIDE when there is no active session" in {
 
       val authConnector =
-        mock[AuthConnector]
+        mock(classOf[AuthConnector])
+
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.failed(
+          new NoActiveSession("No active session") {}
+        )
+      )
 
       val app =
-        application
+        applicationBuilder().build()
 
-      running(app) {
+      val auth =
+        strideAuth(
+          authConnector,
+          app
+        )
 
-        val config =
-          Configuration.from(
-            Map(
-              "appName"                                     -> "sdec",
-              "stride.role"                                 -> "SDEC_test_role",
-              "Test.external-url.stride-auth-frontend.host" ->
-                "http://localhost:9041"
+      val action =
+        (
+            _: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.successful(
+            Results.Ok("success")
+          )
+
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
+        ).withHeaders(
+          "Host" -> "localhost"
+        )
+
+      val result =
+        auth
+          .authorisedFromStride(action)
+          .apply(request)
+          .futureValue
+
+      result.header.status shouldBe Status.SEE_OTHER
+
+      val location =
+        result.header.headers("Location")
+
+      location should startWith(
+        "http://localhost:9041/stride/sign-in?"
+      )
+
+      location should include(
+        "successURL="
+      )
+
+      location should include(
+        "origin=sdec"
+      )
+
+      location should not include "failureURL="
+    }
+
+    "redirect to the insufficient roles page when the user is not sufficiently enrolled" in {
+
+      val authConnector =
+        mock(classOf[AuthConnector])
+
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.failed(
+          InsufficientEnrolments(
+            "Insufficient enrolments"
+          )
+        )
+      )
+
+      val app =
+        applicationBuilder().build()
+
+      val auth =
+        strideAuth(
+          authConnector,
+          app
+        )
+
+      val action =
+        (
+            _: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.successful(
+            Results.Ok("success")
+          )
+
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
+        )
+
+      val result =
+        auth
+          .authorisedFromStride(action)
+          .apply(request)
+          .futureValue
+
+      result.header.status shouldBe Status.SEE_OTHER
+
+      val location =
+        result.header.headers("Location")
+
+      location shouldBe
+        controllers.routes.InsufficientRolesController.get.url
+    }
+
+    "not execute the supplied action when there is no active session" in {
+
+      val authConnector =
+        mock(classOf[AuthConnector])
+
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.failed(
+          new NoActiveSession("No active session") {}
+        )
+      )
+
+      val app =
+        applicationBuilder().build()
+
+      val auth =
+        strideAuth(
+          authConnector,
+          app
+        )
+
+      val action =
+        (
+            _: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.failed(
+            new AssertionError(
+              "The supplied action should not have been executed"
             )
           )
 
-        val auth =
-          strideAuth(
-            authConnector,
-            app,
-            config
-          )
-
-        when(
-          authConnector.authorise(
-            any[Predicate],
-            any[Retrieval[StrideRetrieval]]
-          )(using
-            any[HeaderCarrier],
-            any[scala.concurrent.ExecutionContext]
-          )
-        ).thenReturn(
-          Future.failed(
-            new NoActiveSession("No active session") {}
-          )
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
         )
 
-        val request =
-          FakeRequest(
-            GET,
-            "/test"
-          )
-
-        val result =
-          auth
-            .authorisedFromStride { (_, _) =>
-              Future.successful(
-                Ok("should not be called")
-              )
-            }
-            .apply(request)
-
-        status(result) mustEqual SEE_OTHER
-
-        redirectLocation(
-          result
-        ).get mustBe "http://localhost:9041/stride/sign-in?successURL=http%3A%2F%2Flocalhost%2Ftest&origin=sdec"
-      }
-    }
-
-    "must redirect to the insufficient roles page when the user does not have the required enrolment" in {
-
-      val authConnector =
-        mock[AuthConnector]
-
-      val app =
-        application
-
-      running(app) {
-
-        val auth =
-          strideAuth(
-            authConnector,
-            app
-          )
-
-        when(
-          authConnector.authorise(
-            any[Predicate],
-            any[Retrieval[StrideRetrieval]]
-          )(using
-            any[HeaderCarrier],
-            any[scala.concurrent.ExecutionContext]
-          )
-        ).thenReturn(
-          Future.failed(
-            new InsufficientEnrolments("Insufficient enrolments")
-          )
-        )
-
-        val request =
-          FakeRequest(
-            GET,
-            "/test"
-          )
-
-        val result =
-          auth
-            .authorisedFromStride { (_, _) =>
-              Future.successful(
-                Ok("should not be called")
-              )
-            }
-            .apply(request)
-
-        status(result) mustEqual SEE_OTHER
-
-        redirectLocation(result) mustEqual Some(
-          controllers.routes.InsufficientRolesController.get.url
-        )
-      }
-    }
-
-    "must not execute the supplied action when there is no active session" in {
-
-      val authConnector =
-        mock[AuthConnector]
-
-      val app =
-        application
-
-      running(app) {
-
-        val auth =
-          strideAuth(
-            authConnector,
-            app
-          )
-
-        when(
-          authConnector.authorise(
-            any[Predicate],
-            any[Retrieval[StrideRetrieval]]
-          )(using
-            any[HeaderCarrier],
-            any[scala.concurrent.ExecutionContext]
-          )
-        ).thenReturn(
-          Future.failed(
-            new NoActiveSession("No active session") {}
-          )
-        )
-
-        val action =
-          mock[
-            (
-                models.StrideAuthUser,
-                play.api.mvc.Request[play.api.mvc.AnyContent]
-            ) => Future[play.api.mvc.Result]
-          ]
-
-        val request =
-          FakeRequest(
-            GET,
-            "/test"
-          )
-
+      val result =
         auth
-          .authorisedFromStride { (user, request) =>
-            action(user, request)
-          }
+          .authorisedFromStride(action)
           .apply(request)
           .futureValue
 
-        verifyNoInteractions(action)
-      }
+      result.header.status shouldBe Status.SEE_OTHER
     }
 
-    "must not execute the supplied action when the user has insufficient enrolments" in {
+    "not execute the supplied action when the user has insufficient enrolments" in {
 
       val authConnector =
-        mock[AuthConnector]
+        mock(classOf[AuthConnector])
 
-      val app =
-        application
-
-      running(app) {
-
-        val auth =
-          strideAuth(
-            authConnector,
-            app
-          )
-
-        when(
-          authConnector.authorise(
-            any[Predicate],
-            any[Retrieval[StrideRetrieval]]
-          )(using
-            any[HeaderCarrier],
-            any[scala.concurrent.ExecutionContext]
-          )
-        ).thenReturn(
-          Future.failed(
-            new InsufficientEnrolments("Insufficient enrolments")
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.failed(
+          InsufficientEnrolments(
+            "Insufficient enrolments"
           )
         )
+      )
 
-        val action =
-          mock[
-            (
-                models.StrideAuthUser,
-                play.api.mvc.Request[play.api.mvc.AnyContent]
-            ) => Future[play.api.mvc.Result]
-          ]
+      val app =
+        applicationBuilder().build()
 
-        val request =
-          FakeRequest(
-            GET,
-            "/test"
+      val auth =
+        strideAuth(
+          authConnector,
+          app
+        )
+
+      val action =
+        (
+            _: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.failed(
+            new AssertionError(
+              "The supplied action should not have been executed"
+            )
           )
 
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
+        )
+
+      val result =
         auth
-          .authorisedFromStride { (user, request) =>
-            action(user, request)
-          }
+          .authorisedFromStride(action)
           .apply(request)
           .futureValue
 
-        verifyNoInteractions(action)
-      }
+      result.header.status shouldBe Status.SEE_OTHER
     }
   }
 }
