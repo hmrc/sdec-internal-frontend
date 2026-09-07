@@ -80,9 +80,10 @@ class StrideAuthSpec extends SpecBase {
       application: play.api.Application,
       config: Configuration = Configuration.from(
         Map(
-          "appName"          -> "sdec",
-          "stride.role"      -> "sdec_integration_tester",
-          "urls.strideLogin" -> "http://localhost:9041/stride/sign-in"
+          "appName"            -> "sdec",
+          "stride.role"        -> "sdec_integration_tester",
+          "urls.strideLogin"   -> "http://localhost:9041/stride/sign-in",
+          "urls.loginContinue" -> "http://localhost:4000/sdec-internal-frontend"
         )
       )
   ): StrideAuth = {

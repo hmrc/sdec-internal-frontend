@@ -46,11 +46,8 @@ class StrideAuth @Inject() (
     with FrontendHeaderCarrierProvider
     with Logging {
 
-  val isLocal: Boolean =
-    config.getOptional[String]("platform.frontend.host").isEmpty
-
-  val role: String =
-    config.get[String]("stride.role")
+  val role: String             = config.get[String]("stride.role")
+  val loginContinueUrl: String = config.get[String]("urls.loginContinue")
 
   override def authorisedFromStride(
       action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
@@ -85,10 +82,7 @@ class StrideAuth @Inject() (
 
             Future.successful(
               toStrideLogin(
-                if (isLocal)
-                  s"http://${request.host}${request.uri}"
-                else
-                  request.uri
+                loginContinueUrl
               )
             )
 
