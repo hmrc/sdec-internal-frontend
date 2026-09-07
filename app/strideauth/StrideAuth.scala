@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import models.StrideAuthUser
 import play.api.mvc.*
 import play.api.{Configuration, Environment, Logging}
+import services.StrideEnrolmentServiceAlgebra
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
@@ -38,7 +39,8 @@ class StrideAuth @Inject() (
     val authConnector: AuthConnector,
     val env: Environment,
     val config: Configuration,
-    actionBuilder: DefaultActionBuilder
+    actionBuilder: DefaultActionBuilder,
+    strideEnrolmentService: StrideEnrolmentServiceAlgebra
 ) extends StrideAuthAlgebra
     with AuthRedirects
     with AuthorisedFunctions
@@ -53,9 +55,7 @@ class StrideAuth @Inject() (
       action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
   )(implicit ec: ExecutionContext): Action[AnyContent] =
     actionBuilder.async { implicit request =>
-      authorised(
-        Enrolment(role) and AuthProviders(PrivilegedApplication)
-      )
+      authorised(AuthProviders(PrivilegedApplication))
         .retrieve(
           Retrievals.allEnrolments
             .and(Retrievals.email)
@@ -65,15 +65,26 @@ class StrideAuth @Inject() (
             ) // See https://confluence.tools.tax.service.gov.uk/spaces/SDEC/pages/1381269850/Extracting+External+Internal+User+Name
         ) { case allEnrolments ~ email ~ credentials ~ name =>
 
+          val sdecEnrolments =
+            strideEnrolmentService.extractSdecEnrolments(allEnrolments)
+
           val strideUser =
             StrideAuthUser(
               credentials,
               email,
-              allEnrolments,
+              sdecEnrolments,
               name
             )
 
-          action(strideUser, request)
+          strideEnrolmentService.verifyEnrollment(strideUser).flatMap {
+            case true  => action(strideUser, request)
+            case false =>
+              Future.successful(
+                SeeOther(
+                  controllers.routes.InsufficientRolesController.get.url
+                )
+              )
+          }
         }
         .recoverWith {
 

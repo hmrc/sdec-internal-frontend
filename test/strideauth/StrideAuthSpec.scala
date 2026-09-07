@@ -95,7 +95,8 @@ class StrideAuthSpec extends SpecBase {
       authConnector,
       application.environment,
       config,
-      actionBuilder
+      actionBuilder,
+      strideEnrolmentService
     )
   }
 
