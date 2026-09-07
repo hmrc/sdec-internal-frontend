@@ -26,6 +26,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   val host: String    = configuration.get[String]("host")
   val appName: String = configuration.get[String]("appName")
+  // val isLocal: Boolean = configuration.getOptional[String]("platform.frontend.host").isEmpty
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
   private val contactFormServiceIdentifier = "sdec-internal-frontend"
@@ -53,4 +54,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
   val countdown: Int = configuration.get[Int]("timeout-dialog.countdown")
 
   val cacheTtl: Long = configuration.get[Int]("mongodb.timeToLiveInSeconds")
+
+  val strideRole: String = configuration.get[String]("stride.role")
+
 }

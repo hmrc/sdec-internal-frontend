@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package queries
+package models
 
-import models.UserAnswers
-import play.api.libs.json.JsPath
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 
-import scala.annotation.nowarn
-import scala.util.{Success, Try}
+object TestStrideAuthUser {
 
-sealed trait Query {
-
-  def path: JsPath
-}
-
-trait Gettable[A] extends Query
-
-trait Settable[A] extends Query {
-
-  def cleanup(@nowarn value: Option[A], userAnswers: UserAnswers): Try[UserAnswers] =
-    Success(userAnswers)
+  val standardUser: StrideAuthUser =
+    StrideAuthUser(
+      credentials = Credentials(
+        providerId = "12345",
+        providerType = "PrivilegedApplication"
+      ),
+      email = "test.user@example.com",
+      enrolments = Enrolments(Set(Enrolment("sdec_integration_tester"))),
+      name = Name(
+        Some("Test"),
+        Some("User")
+      )
+    )
 }

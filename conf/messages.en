@@ -48,6 +48,9 @@ signedOut.guidance = We did not save your answers.
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
+insufficient.roles.header = Insuffient Role
+insufficient.roles.body = You do not have role defined for access to SDEC
+
 sdec.button.thread.create = Create Thread
 sdec.dashboard.title = SDEC Internal Dashboard
 sdec.dashboard.heading = SDEC Internal Dashboard

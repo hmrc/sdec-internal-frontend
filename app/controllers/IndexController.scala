@@ -16,28 +16,37 @@
 
 package controllers
 
-import controllers.actions.IdentifierAction
+import actions.IdentifierAction
 import play.api.Logging
-import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.mvc.*
+import services.LogStrideUserService
+import strideauth.StrideAuthAlgebra
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.IndexView
 
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class IndexController @Inject() (
     val controllerComponents: MessagesControllerComponents,
     identify: IdentifierAction,
-    view: IndexView
+    strideAuth: StrideAuthAlgebra,
+    view: IndexView,
+    logStrideUserService: LogStrideUserService
 ) extends FrontendBaseController
     with Logging
     with I18nSupport {
 
-  def onPageLoad(): Action[AnyContent] = identify { implicit request =>
-    request.headers.headers.foreach { case (name, value) =>
-      logger.warn(s"Header: $name = $value")
+  def onPageLoad(): Action[AnyContent] =
+    strideAuth.authorisedFromStride { (strideUser, request) =>
+      implicit val implicitRequest: Request[AnyContent] = request
+      implicit val messages: Messages                   =
+        controllerComponents.messagesApi.preferred(request)
+      logStrideUserService
+        .process(strideUser, request)
+        .map { _ =>
+          Ok(view(strideUser.name.name.getOrElse("HMRC Staff")))
+        }
     }
-    logger.warn(s"Authenticated userId: ${request.userId}")
-    Ok(view(request.userId))
-  }
 }
