@@ -25,6 +25,7 @@ import play.api.Configuration
 import play.api.http.Status
 import play.api.mvc.*
 import play.api.test.FakeRequest
+import services.StrideEnrolmentServiceAlgebra
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 
@@ -78,6 +79,7 @@ class StrideAuthSpec extends SpecBase {
   private def strideAuth(
       authConnector: AuthConnector,
       application: play.api.Application,
+      strideEnrolmentService: StrideEnrolmentServiceAlgebra,
       config: Configuration = Configuration.from(
         Map(
           "appName"            -> "sdec",
@@ -102,10 +104,13 @@ class StrideAuthSpec extends SpecBase {
 
   "StrideAuth" - {
 
-    "execute the supplied action when authentication and authorisation succeed" in {
+    "execute the supplied action when authentication and enrolment verification succeed" in {
 
       val authConnector =
         mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
 
       when(
         authConnector.authorise[StrideRetrieval](
@@ -116,13 +121,30 @@ class StrideAuthSpec extends SpecBase {
         Future.successful(successfulRetrieval)
       )
 
+      when(
+        strideEnrolmentService.extractSdecEnrolments(
+          any()
+        )
+      ).thenReturn(
+        strideUser.enrolments
+      )
+
+      when(
+        strideEnrolmentService.verifyEnrollment(
+          any()
+        )
+      ).thenReturn(
+        Future.successful(true)
+      )
+
       val app =
         applicationBuilder().build()
 
       val auth =
         strideAuth(
           authConnector,
-          app
+          app,
+          strideEnrolmentService
         )
 
       val action =
@@ -147,12 +169,101 @@ class StrideAuthSpec extends SpecBase {
           .futureValue
 
       result.header.status shouldBe Status.OK
+
+      verify(strideEnrolmentService).extractSdecEnrolments(
+        strideUser.enrolments
+      )
+
+      verify(strideEnrolmentService).verifyEnrollment(
+        strideUser.copy(
+          enrolments = strideUser.enrolments
+        )
+      )
+    }
+
+    "redirect to insufficient roles when enrolment verification returns false" in {
+
+      val authConnector =
+        mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
+
+      when(
+        authConnector.authorise[StrideRetrieval](
+          any(),
+          any()
+        )(any(), any())
+      ).thenReturn(
+        Future.successful(successfulRetrieval)
+      )
+
+      when(
+        strideEnrolmentService.extractSdecEnrolments(
+          any()
+        )
+      ).thenReturn(
+        strideUser.enrolments
+      )
+
+      when(
+        strideEnrolmentService.verifyEnrollment(
+          any()
+        )
+      ).thenReturn(
+        Future.successful(false)
+      )
+
+      val app =
+        applicationBuilder().build()
+
+      val auth =
+        strideAuth(
+          authConnector,
+          app,
+          strideEnrolmentService
+        )
+
+      val action =
+        (
+            _: StrideAuthUser,
+            _: Request[AnyContent]
+        ) =>
+          Future.failed(
+            new AssertionError(
+              "The supplied action should not have been executed"
+            )
+          )
+
+      val request =
+        FakeRequest(
+          "GET",
+          "/test"
+        )
+
+      val result =
+        auth
+          .authorisedFromStride(action)
+          .apply(request)
+          .futureValue
+
+      result.header.status shouldBe Status.SEE_OTHER
+
+      result.header.headers("Location") shouldBe
+        controllers.routes.InsufficientRolesController.get.url
+
+      verify(strideEnrolmentService).verifyEnrollment(
+        any()
+      )
     }
 
     "redirect to STRIDE when there is no active session" in {
 
       val authConnector =
         mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
 
       when(
         authConnector.authorise[StrideRetrieval](
@@ -171,7 +282,8 @@ class StrideAuthSpec extends SpecBase {
       val auth =
         strideAuth(
           authConnector,
-          app
+          app,
+          strideEnrolmentService
         )
 
       val action =
@@ -179,16 +291,16 @@ class StrideAuthSpec extends SpecBase {
             _: StrideAuthUser,
             _: Request[AnyContent]
         ) =>
-          Future.successful(
-            Results.Ok("success")
+          Future.failed(
+            new AssertionError(
+              "The supplied action should not have been executed"
+            )
           )
 
       val request =
         FakeRequest(
           "GET",
           "/test"
-        ).withHeaders(
-          "Host" -> "localhost"
         )
 
       val result =
@@ -215,12 +327,17 @@ class StrideAuthSpec extends SpecBase {
       )
 
       location should not include "failureURL="
+
+      verifyNoInteractions(strideEnrolmentService)
     }
 
-    "redirect to the insufficient roles page when the user is not sufficiently enrolled" in {
+    "redirect to the insufficient roles page when authentication returns insufficient enrolments" in {
 
       val authConnector =
         mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
 
       when(
         authConnector.authorise[StrideRetrieval](
@@ -241,7 +358,8 @@ class StrideAuthSpec extends SpecBase {
       val auth =
         strideAuth(
           authConnector,
-          app
+          app,
+          strideEnrolmentService
         )
 
       val action =
@@ -249,8 +367,10 @@ class StrideAuthSpec extends SpecBase {
             _: StrideAuthUser,
             _: Request[AnyContent]
         ) =>
-          Future.successful(
-            Results.Ok("success")
+          Future.failed(
+            new AssertionError(
+              "The supplied action should not have been executed"
+            )
           )
 
       val request =
@@ -267,17 +387,19 @@ class StrideAuthSpec extends SpecBase {
 
       result.header.status shouldBe Status.SEE_OTHER
 
-      val location =
-        result.header.headers("Location")
-
-      location shouldBe
+      result.header.headers("Location") shouldBe
         controllers.routes.InsufficientRolesController.get.url
+
+      verifyNoInteractions(strideEnrolmentService)
     }
 
     "not execute the supplied action when there is no active session" in {
 
       val authConnector =
         mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
 
       when(
         authConnector.authorise[StrideRetrieval](
@@ -296,7 +418,8 @@ class StrideAuthSpec extends SpecBase {
       val auth =
         strideAuth(
           authConnector,
-          app
+          app,
+          strideEnrolmentService
         )
 
       val action =
@@ -323,12 +446,17 @@ class StrideAuthSpec extends SpecBase {
           .futureValue
 
       result.header.status shouldBe Status.SEE_OTHER
+
+      verifyNoInteractions(strideEnrolmentService)
     }
 
-    "not execute the supplied action when the user has insufficient enrolments" in {
+    "not execute the supplied action when authentication returns insufficient enrolments" in {
 
       val authConnector =
         mock(classOf[AuthConnector])
+
+      val strideEnrolmentService =
+        mock(classOf[StrideEnrolmentServiceAlgebra])
 
       when(
         authConnector.authorise[StrideRetrieval](
@@ -349,7 +477,8 @@ class StrideAuthSpec extends SpecBase {
       val auth =
         strideAuth(
           authConnector,
-          app
+          app,
+          strideEnrolmentService
         )
 
       val action =
@@ -376,6 +505,8 @@ class StrideAuthSpec extends SpecBase {
           .futureValue
 
       result.header.status shouldBe Status.SEE_OTHER
+
+      verifyNoInteractions(strideEnrolmentService)
     }
   }
 }
