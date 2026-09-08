@@ -25,10 +25,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 
-class StrideEnrolmentServiceSpec
-    extends AnyFlatSpec
-    with Matchers
-    with ScalaFutures {
+class StrideEnrolmentServiceSpec extends AnyFlatSpec with Matchers with ScalaFutures {
   private val config = mock(classOf[FrontendAppConfig])
   when(config.strideRole).thenReturn("sdec_integration_tester")
   when(config.sdecAccessPrefixMatch).thenReturn("SDEC")

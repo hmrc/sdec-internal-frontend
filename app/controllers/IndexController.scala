@@ -29,11 +29,11 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class IndexController @Inject() (
-    val controllerComponents: MessagesControllerComponents,
-    identify: IdentifierAction,
-    strideAuth: StrideAuthAlgebra,
-    view: IndexView,
-    logStrideUserService: LogStrideUserService
+  val controllerComponents: MessagesControllerComponents,
+  identify:                 IdentifierAction,
+  strideAuth:               StrideAuthAlgebra,
+  view:                     IndexView,
+  logStrideUserService:     LogStrideUserService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with Logging
@@ -42,7 +42,7 @@ class IndexController @Inject() (
   def onPageLoad(): Action[AnyContent] =
     strideAuth.authorisedFromStride { (strideUser, request) =>
       implicit val implicitRequest: Request[AnyContent] = request
-      implicit val messages: Messages                   =
+      implicit val messages:        Messages            =
         controllerComponents.messagesApi.preferred(request)
       logStrideUserService
         .process(strideUser, request)

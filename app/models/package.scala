@@ -72,16 +72,16 @@ package object models {
       }
 
     private def setIndexNode(
-        node: IdxPathNode,
-        oldValue: JsValue,
-        newValue: JsValue
+      node:     IdxPathNode,
+      oldValue: JsValue,
+      newValue: JsValue
     ): JsResult[JsValue] = {
 
       val index: Int = node.idx
 
       oldValue match {
         case oldValue: JsArray if index >= 0 && index <= oldValue.value.length =>
-          if (index == oldValue.value.length) {
+          if index == oldValue.value.length then {
             JsSuccess(oldValue.append(newValue))
           } else {
             JsSuccess(JsArray(oldValue.value.updated(index, newValue)))
@@ -94,14 +94,13 @@ package object models {
     }
 
     private def removeIndexNode(
-        node: IdxPathNode,
-        valueToRemoveFrom: JsArray
+      node:              IdxPathNode,
+      valueToRemoveFrom: JsArray
     ): JsResult[JsValue] = {
       val index: Int = node.idx
 
       valueToRemoveFrom match {
-        case valueToRemoveFrom: JsArray
-            if index >= 0 && index < valueToRemoveFrom.value.length =>
+        case valueToRemoveFrom: JsArray if index >= 0 && index < valueToRemoveFrom.value.length =>
           val updatedJsArray = valueToRemoveFrom.value.slice(
             0,
             index
@@ -113,9 +112,9 @@ package object models {
     }
 
     private def setKeyNode(
-        node: KeyPathNode,
-        oldValue: JsValue,
-        newValue: JsValue
+      node:     KeyPathNode,
+      oldValue: JsValue,
+      newValue: JsValue
     ): JsResult[JsValue] = {
 
       val key = node.key
@@ -129,15 +128,13 @@ package object models {
     }
 
     @nowarn
-    def remove(path: JsPath): JsResult[JsValue] = {
+    def remove(path: JsPath): JsResult[JsValue] =
 
       (path.path, jsValue) match {
-        case (Nil, _) => JsError("path cannot be empty")
-        case ((n: KeyPathNode) :: Nil, value: JsObject)
-            if value.keys.contains(n.key) =>
+        case (Nil, _)                                                                 => JsError("path cannot be empty")
+        case ((n: KeyPathNode) :: Nil, value: JsObject) if value.keys.contains(n.key) =>
           JsSuccess(value - n.key)
-        case ((n: KeyPathNode) :: Nil, value: JsObject)
-            if !value.keys.contains(n.key) =>
+        case ((n: KeyPathNode) :: Nil, value: JsObject) if !value.keys.contains(n.key) =>
           JsError("cannot find value at path")
         case ((n: IdxPathNode) :: Nil, value: JsArray) => removeIndexNode(n, value)
         case ((_: KeyPathNode) :: Nil, _)              =>
@@ -167,6 +164,5 @@ package object models {
                 }
             }
       }
-    }
   }
 }

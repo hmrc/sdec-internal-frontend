@@ -24,8 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class StrideEnrolmentService @Inject() (config: FrontendAppConfig)
-    extends StrideEnrolmentServiceAlgebra {
+class StrideEnrolmentService @Inject() (config: FrontendAppConfig) extends StrideEnrolmentServiceAlgebra {
 
   // Set of SDEC enrolments
   private lazy val sdecSRSEnrolments = Enrolments(
@@ -36,23 +35,20 @@ class StrideEnrolmentService @Inject() (config: FrontendAppConfig)
 
   override def extractSdecEnrolments(enrolments: Enrolments): Enrolments = {
     val filtered =
-      enrolments.enrolments.filter(enrol =>
-        enrol.key.toUpperCase.startsWith(config.sdecAccessPrefixMatch)
-      )
+      enrolments.enrolments.filter(enrol => enrol.key.toUpperCase.startsWith(config.sdecAccessPrefixMatch))
     Enrolments(filtered)
   }
 
-  /** This method for now uses the config value, but it should use either the AD,
-    * LDAP or HCP database to verify that the user has a matching SRS role
+  /** This method for now uses the config value, but it should use either the AD, LDAP or HCP database to verify that
+    * the user has a matching SRS role
     * @param strideUser
     * @return
     */
-  override def verifyEnrollment(strideUser: StrideAuthUser): Future[Boolean] = {
+  override def verifyEnrollment(strideUser: StrideAuthUser): Future[Boolean] =
 
     Future.successful(
       strideUser.enrolments.enrolments.exists(enrol =>
         sdecSRSEnrolments.enrolments.exists(_.key.equalsIgnoreCase(enrol.key))
       )
     )
-  }
 }

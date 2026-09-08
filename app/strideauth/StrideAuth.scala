@@ -32,16 +32,16 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait StrideAuthAlgebra {
   def authorisedFromStride(
-      action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
+    action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
   )(implicit ec: ExecutionContext): Action[AnyContent]
 }
 
 class StrideAuth @Inject() (
-    val authConnector: AuthConnector,
-    val env: Environment,
-    val config: FrontendAppConfig,
-    actionBuilder: DefaultActionBuilder,
-    strideEnrolmentService: StrideEnrolmentServiceAlgebra
+  val authConnector:      AuthConnector,
+  val env:                Environment,
+  val config:             FrontendAppConfig,
+  actionBuilder:          DefaultActionBuilder,
+  strideEnrolmentService: StrideEnrolmentServiceAlgebra
 ) extends StrideAuthAlgebra
     with AuthorisedFunctions
     with Results
@@ -49,7 +49,7 @@ class StrideAuth @Inject() (
     with Logging {
 
   override def authorisedFromStride(
-      action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
+    action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
   )(implicit ec: ExecutionContext): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       authorised(AuthProviders(PrivilegedApplication))

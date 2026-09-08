@@ -20,19 +20,19 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 
 case class StrideAuthUser(
-    credentials: Credentials,
-    email: String,
-    enrolments: Enrolments,
-    name: Name
+  credentials: Credentials,
+  email:       String,
+  enrolments:  Enrolments,
+  name:        Name
 )
 
 object StrideAuthUser {
 
   def apply(
-      credentialOptions: Option[Credentials],
-      email: Option[String],
-      enrolments: Enrolments,
-      nameOption: Option[Name]
+    credentialOptions: Option[Credentials],
+    email:             Option[String],
+    enrolments:        Enrolments,
+    nameOption:        Option[Name]
   ): StrideAuthUser =
     StrideAuthUser(
       credentials = credentialOptions.getOrElse(

@@ -27,8 +27,8 @@ import scala.concurrent.Future
 class LogStrideUserService extends SdecServiceAlgebra[Unit] with Logging {
 
   override def process(
-      strideUser: StrideAuthUser,
-      request: Request[AnyContent]
+    strideUser: StrideAuthUser,
+    request:    Request[AnyContent]
   ): Future[Unit] = {
 
     logger.info("===========================================================")
