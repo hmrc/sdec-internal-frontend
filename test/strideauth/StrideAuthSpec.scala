@@ -17,11 +17,11 @@
 package strideauth
 
 import base.SpecBase
+import config.FrontendAppConfig
 import models.StrideAuthUser
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
-import play.api.Configuration
 import play.api.http.Status
 import play.api.mvc.*
 import play.api.test.FakeRequest
@@ -76,18 +76,16 @@ class StrideAuthSpec extends SpecBase {
       Some(strideUser.name)
     )
 
+  private val config = mock(classOf[FrontendAppConfig])
+  when(config.appName).thenReturn("sdec-internal-frontend")
+  when(config.loginUrl).thenReturn("http://localhost:9041/stride/sign-in")
+  when(config.loginContinueUrl).thenReturn("localhost:4000/sdec-admin")
+
   private def strideAuth(
       authConnector: AuthConnector,
       application: play.api.Application,
       strideEnrolmentService: StrideEnrolmentServiceAlgebra,
-      config: Configuration = Configuration.from(
-        Map(
-          "appName"            -> "sdec",
-          "stride.role"        -> "sdec_integration_tester",
-          "urls.strideLogin"   -> "http://localhost:9041/stride/sign-in",
-          "urls.loginContinue" -> "http://localhost:4000/sdec-internal-frontend"
-        )
-      )
+      config: FrontendAppConfig
   ): StrideAuth = {
 
     val actionBuilder =
@@ -144,7 +142,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =
@@ -221,7 +220,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =
@@ -283,7 +283,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =
@@ -359,7 +360,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =
@@ -419,7 +421,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =
@@ -478,7 +481,8 @@ class StrideAuthSpec extends SpecBase {
         strideAuth(
           authConnector,
           app,
-          strideEnrolmentService
+          strideEnrolmentService,
+          config
         )
 
       val action =

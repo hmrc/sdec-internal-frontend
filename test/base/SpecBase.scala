@@ -27,7 +27,6 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeRequest
-import services.{StrideEnrolmentService, StrideEnrolmentServiceAlgebra}
 
 trait SpecBase
     extends AnyFreeSpec
@@ -38,9 +37,6 @@ trait SpecBase
     with IntegrationPatience {
 
   val userAnswersId: String = "id"
-
-  val strideEnrolmentService: StrideEnrolmentServiceAlgebra =
-    StrideEnrolmentService()
 
   def emptyUserAnswers: UserAnswers = UserAnswers(userAnswersId)
 
@@ -56,9 +52,6 @@ trait SpecBase
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[DataRetrievalAction].toInstance(
           new FakeDataRetrievalAction(userAnswers)
-        ),
-        bind[StrideEnrolmentServiceAlgebra].toInstance(
-          strideEnrolmentService
         )
       )
 }

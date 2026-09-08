@@ -16,7 +16,9 @@
 
 package services
 
+import config.FrontendAppConfig
 import models.StrideAuthUser
+import org.mockito.Mockito.*
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -27,13 +29,16 @@ class StrideEnrolmentServiceSpec
     extends AnyFlatSpec
     with Matchers
     with ScalaFutures {
+  private val config = mock(classOf[FrontendAppConfig])
+  when(config.strideRole).thenReturn("sdec_integration_tester")
+  when(config.sdecAccessPrefixMatch).thenReturn("SDEC")
 
   private val sdecEnrolment =
     Enrolment("sdec_integration_tester", List(), "activated", None)
   private val anotherEnrolment =
     Enrolment("repay_caseworker", List(), "activated", None)
 
-  private val sdecEnrolments = Enrolments(Set(sdecEnrolment))
+  Enrolments(Set(sdecEnrolment))
 
   private val striderUser = StrideAuthUser(
     credentialOptions = Some(Credentials("12345", "PrivilegedApplication")),
@@ -41,7 +46,7 @@ class StrideEnrolmentServiceSpec
     enrolments = Enrolments(Set(sdecEnrolment, anotherEnrolment)),
     nameOption = Some(Name(Some("Test User"), None))
   )
-  val sut = new StrideEnrolmentService(sdecEnrolments)
+  val sut = new StrideEnrolmentService(config)
 
   it should "extract sdec enrolments" in {
     val result = sut.extractSdecEnrolments(striderUser.enrolments)

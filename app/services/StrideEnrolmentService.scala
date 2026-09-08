@@ -16,40 +16,43 @@
 
 package services
 
+import config.FrontendAppConfig
 import models.StrideAuthUser
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-// The set of SDEC enrollments should come from LDAP/DB
-class StrideEnrolmentService(sdecEnrollments: Enrolments)
+@Singleton
+class StrideEnrolmentService @Inject() (config: FrontendAppConfig)
     extends StrideEnrolmentServiceAlgebra {
-  private val sdecMatch = "SDEC"
+
+  // Set of SDEC enrolments
+  private lazy val sdecSRSEnrolments = Enrolments(
+    Set(
+      Enrolment(config.strideRole)
+    )
+  )
 
   override def extractSdecEnrolments(enrolments: Enrolments): Enrolments = {
     val filtered =
       enrolments.enrolments.filter(enrol =>
-        enrol.key.toUpperCase.startsWith(sdecMatch)
+        enrol.key.toUpperCase.startsWith(config.sdecAccessPrefixMatch)
       )
     Enrolments(filtered)
   }
 
-  // This returns a future as, in implementation, the information will check against LDAP/DB
+  /** This method for now uses the config value, but it should use either the AD,
+    * LDAP or HCP database to verify that the user has a matching SRS role
+    * @param strideUser
+    * @return
+    */
   override def verifyEnrollment(strideUser: StrideAuthUser): Future[Boolean] = {
+
     Future.successful(
       strideUser.enrolments.enrolments.exists(enrol =>
-        sdecEnrollments.enrolments.exists(_.key.equalsIgnoreCase(enrol.key))
+        sdecSRSEnrolments.enrolments.exists(_.key.equalsIgnoreCase(enrol.key))
       )
     )
   }
-}
-
-object StrideEnrolmentService {
-  val sdecEnrollments: Enrolments = Enrolments(
-    Set(Enrolment("sdec_integration_tester"))
-  )
-
-  def apply(): StrideEnrolmentServiceAlgebra = new StrideEnrolmentService(
-    sdecEnrollments
-  )
 }

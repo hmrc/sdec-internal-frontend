@@ -4,7 +4,7 @@ object AppDependencies {
 
   private val bootstrapVersion  = "10.7.0"
   private val hmrcMongoVersion  = "2.13.0"
-  private val hmrcPlayFEVersion = "12.32.1"
+  private val hmrcPlayFEVersion = "13.13.0"
   private val scalaCheckVersion = "3.2.17.0"
 
   val compile = Seq(

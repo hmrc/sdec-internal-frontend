@@ -45,6 +45,8 @@ class Module extends AbstractModule {
 
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
 
-    bind(classOf[StrideEnrolmentServiceAlgebra]).toInstance(StrideEnrolmentService())
+    bind(classOf[StrideEnrolmentServiceAlgebra])
+      .to(classOf[StrideEnrolmentService])
+      .asEagerSingleton()
   }
 }

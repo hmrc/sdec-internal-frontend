@@ -17,9 +17,10 @@
 package strideauth
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import models.StrideAuthUser
 import play.api.mvc.*
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Environment, Logging}
 import services.StrideEnrolmentServiceAlgebra
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
@@ -38,18 +39,14 @@ trait StrideAuthAlgebra {
 class StrideAuth @Inject() (
     val authConnector: AuthConnector,
     val env: Environment,
-    val config: Configuration,
+    val config: FrontendAppConfig,
     actionBuilder: DefaultActionBuilder,
     strideEnrolmentService: StrideEnrolmentServiceAlgebra
 ) extends StrideAuthAlgebra
-    with AuthRedirects
     with AuthorisedFunctions
     with Results
     with FrontendHeaderCarrierProvider
     with Logging {
-
-  val role: String             = config.get[String]("stride.role")
-  val loginContinueUrl: String = config.get[String]("urls.loginContinue")
 
   override def authorisedFromStride(
       action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
@@ -92,8 +89,12 @@ class StrideAuth @Inject() (
             logger.warn(s"No active session: ${e.reason}")
 
             Future.successful(
-              toStrideLogin(
-                loginContinueUrl
+              Redirect(
+                config.loginUrl,
+                Map(
+                  "successURL" -> Seq(config.loginContinueUrl),
+                  "origin"     -> Seq(config.appName)
+                )
               )
             )
 
