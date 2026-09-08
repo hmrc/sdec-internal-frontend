@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.IndexView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class IndexController @Inject() (
     val controllerComponents: MessagesControllerComponents,
@@ -34,7 +34,8 @@ class IndexController @Inject() (
     strideAuth: StrideAuthAlgebra,
     view: IndexView,
     logStrideUserService: LogStrideUserService
-) extends FrontendBaseController
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
     with Logging
     with I18nSupport {
 

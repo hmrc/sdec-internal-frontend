@@ -55,6 +55,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   val cacheTtl: Long = configuration.get[Int]("mongodb.timeToLiveInSeconds")
 
-  val strideRole: String = configuration.get[String]("stride.role")
+  val strideRole: String            = configuration.get[String]("stride.role")
+  val sdecAccessPrefixMatch: String =
+    configuration.get[String]("stride.accessPrefixMatch")
 
 }
