@@ -44,15 +44,13 @@ lazy val microservice = (project in file("."))
       "-Wconf:cat=deprecation:ws,cat=feature:ws,cat=optimizer:ws,src=target/.*:s"
     ),
     libraryDependencies ++= AppDependencies(),
-    retrieveManaged             := true,
-    pipelineStages              := Seq(digest),
-    Assets / pipelineStages     := Seq(concat),
+    retrieveManaged := true,
+    pipelineStages := Seq(digest),
+    Assets / pipelineStages := Seq(concat),
     Compile / scalafmtOnCompile := true,
-    Test / scalafmtOnCompile    := true,
+    Test / scalafmtOnCompile := true,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
-    Test / unmanagedSourceDirectories := (Test / baseDirectory)(base =>
-      Seq(base / "test", base / "test-common")
-    ).value,
+    Test / unmanagedSourceDirectories := (Test / baseDirectory)(base => Seq(base / "test", base / "test-common")).value,
     Test / unmanagedResourceDirectories := Seq(
       baseDirectory.value / "test-resources"
     ),
@@ -62,7 +60,7 @@ lazy val microservice = (project in file("."))
   )
   .settings(CodeCoverageSettings.settings: _*)
 
-lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+lazy val testSettings: Seq[Def.Setting[?]] = Seq(
   fork := true,
   unmanagedSourceDirectories += baseDirectory.value / "test-utils"
 )
@@ -79,13 +77,9 @@ inThisBuild(
   )
 )
 
-addCommandAlias(
-  "prePrChecks",
-  "; scalafmtCheckAll; scalafmtSbtCheck; scalafixAll --check"
-)
-addCommandAlias(
-  "checkCodeCoverage",
-  "; clean; coverage; test; it/test; coverageReport"
-)
-addCommandAlias("lint", "; scalafmtAll; scalafmtSbt; scalafixAll")
+// @formatter:off
+addCommandAlias("prePrChecks", "; scalafmtCheckAll; it/scalafmtCheckAll; scalafmtSbtCheck; scalafixAll --check; it/scalafixAll --check")
+addCommandAlias("checkCodeCoverage", "; clean; coverage; test; it/test; coverageReport")
+addCommandAlias("lint", "; scalafmtAll; it/scalafmtAll; scalafmtSbt; it/scalafixAll; scalafixAll")
 addCommandAlias("prePush", "; reload; clean; compile; test; it/test; lint;")
+// @formatter:on

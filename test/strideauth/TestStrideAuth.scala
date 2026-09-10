@@ -23,12 +23,12 @@ import play.api.mvc.*
 import scala.concurrent.{ExecutionContext, Future}
 
 class TestStrideAuth @Inject() (
-    strideUser: StrideAuthUser,
-    actionBuilder: DefaultActionBuilder
+  strideUser:    StrideAuthUser,
+  actionBuilder: DefaultActionBuilder
 ) extends StrideAuthAlgebra {
 
   override def authorisedFromStride(
-      action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
+    action: (StrideAuthUser, Request[AnyContent]) => Future[Result]
   )(implicit ec: ExecutionContext): Action[AnyContent] =
     actionBuilder.async { request =>
       action(strideUser, request)

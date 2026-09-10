@@ -82,10 +82,10 @@ class StrideAuthSpec extends SpecBase {
   when(config.loginContinueUrl).thenReturn("localhost:4000/sdec-admin")
 
   private def strideAuth(
-      authConnector: AuthConnector,
-      application: play.api.Application,
-      strideEnrolmentService: StrideEnrolmentServiceAlgebra,
-      config: FrontendAppConfig
+    authConnector:          AuthConnector,
+    application:            play.api.Application,
+    strideEnrolmentService: StrideEnrolmentServiceAlgebra,
+    config:                 FrontendAppConfig
   ): StrideAuth = {
 
     val actionBuilder =
@@ -148,8 +148,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            user: StrideAuthUser,
-            _: Request[AnyContent]
+          user: StrideAuthUser,
+          _:    Request[AnyContent]
         ) =>
           Future.successful(
             Results.Ok(user.email)
@@ -226,8 +226,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            _: StrideAuthUser,
-            _: Request[AnyContent]
+          _: StrideAuthUser,
+          _: Request[AnyContent]
         ) =>
           Future.failed(
             new AssertionError(
@@ -289,8 +289,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            _: StrideAuthUser,
-            _: Request[AnyContent]
+          _: StrideAuthUser,
+          _: Request[AnyContent]
         ) =>
           Future.failed(
             new AssertionError(
@@ -366,8 +366,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            _: StrideAuthUser,
-            _: Request[AnyContent]
+          _: StrideAuthUser,
+          _: Request[AnyContent]
         ) =>
           Future.failed(
             new AssertionError(
@@ -427,8 +427,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            _: StrideAuthUser,
-            _: Request[AnyContent]
+          _: StrideAuthUser,
+          _: Request[AnyContent]
         ) =>
           Future.failed(
             new AssertionError(
@@ -487,8 +487,8 @@ class StrideAuthSpec extends SpecBase {
 
       val action =
         (
-            _: StrideAuthUser,
-            _: Request[AnyContent]
+          _: StrideAuthUser,
+          _: Request[AnyContent]
         ) =>
           Future.failed(
             new AssertionError(

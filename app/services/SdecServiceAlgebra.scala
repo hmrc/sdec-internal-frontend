@@ -23,7 +23,7 @@ import scala.concurrent.Future
 
 trait SdecServiceAlgebra[T] {
   def process(
-      strideUser: StrideAuthUser,
-      request: Request[AnyContent]
+    strideUser: StrideAuthUser,
+    request:    Request[AnyContent]
   ): Future[T]
 }

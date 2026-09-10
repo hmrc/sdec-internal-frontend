@@ -27,8 +27,8 @@ import scala.concurrent.Future
 
 @Singleton
 class InsufficientRolesController @Inject() (
-    mcc: MessagesControllerComponents,
-    insufficientRoles: InsufficientRoles
+  mcc:               MessagesControllerComponents,
+  insufficientRoles: InsufficientRoles
 )(using FrontendAppConfig)
     extends FrontendController(mcc)
     with I18nSupport {
